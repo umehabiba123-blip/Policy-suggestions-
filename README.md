@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Policy Suggestion Portal</title>
+<title>Citizen Policy Portal</title>
 <style>
     body {
         font-family: Arial, sans-serif;
@@ -16,10 +16,24 @@
     header {
         background-color: #006633;
         color: white;
-        padding: 15px;
+        padding: 20px;
         text-align: center;
-        font-size: 1.5em;
+        font-size: 1.8em;
         font-weight: bold;
+    }
+    nav {
+        background-color: #004d26;
+        padding: 10px;
+        text-align: center;
+    }
+    nav a {
+        color: white;
+        margin: 0 15px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+    nav a:hover {
+        text-decoration: underline;
     }
     .container {
         max-width: 800px;
@@ -53,11 +67,19 @@
         margin-bottom: 10px;
         background: #f9f9f9;
     }
+    .stars {
+        color: gold;
+        cursor: pointer;
+    }
 </style>
 </head>
 <body>
 
-<header>Shape the Future — Your Policy Ideas Matter</header>
+<header>Shape Pakistan’s Future — Your Voice, Your Power</header>
+<nav>
+    <a href="index.html">Home</a>
+    <a href="about.html">About Us</a>
+</nav>
 
 <div class="container">
     <h2>Submit Your Suggestion</h2>
@@ -92,7 +114,7 @@
 </div>
 
 <script>
-    let data = {};
+    let data = JSON.parse(localStorage.getItem("suggestions")) || {};
 
     function submitOpinion() {
         const dept = document.getElementById('department').value;
@@ -104,8 +126,9 @@
         }
         
         if (!data[dept]) data[dept] = [];
-        data[dept].push(opinion);
+        data[dept].push({ text: opinion, rating: 0, votes: 0 });
         
+        localStorage.setItem("suggestions", JSON.stringify(data));
         document.getElementById('opinion').value = "";
         alert("Your suggestion has been added!");
     }
@@ -120,12 +143,28 @@
             return;
         }
         
-        data[dept].forEach(op => {
+        data[dept].forEach((op, index) => {
             const div = document.createElement('div');
             div.className = 'suggestion';
-            div.textContent = op;
+            div.innerHTML = `
+                <p>${op.text}</p>
+                <p>Rating: ${op.rating.toFixed(1)} ⭐ (${op.votes} votes)</p>
+                <div>
+                    ${[1,2,3,4,5].map(star => `
+                        <span class="stars" onclick="rateSuggestion('${dept}', ${index}, ${star})">&#9733;</span>
+                    `).join('')}
+                </div>
+            `;
             listDiv.appendChild(div);
         });
+    }
+
+    function rateSuggestion(dept, index, stars) {
+        const suggestion = data[dept][index];
+        suggestion.rating = ((suggestion.rating * suggestion.votes) + stars) / (suggestion.votes + 1);
+        suggestion.votes += 1;
+        localStorage.setItem("suggestions", JSON.stringify(data));
+        viewSuggestions();
     }
 </script>
 
